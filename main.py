@@ -149,7 +149,7 @@ def main():
     val_dataloader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
     test_dataloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
 
-    run(train_dataloader, val_dataloader, test_dataloader, past_actions_count=3, model="Transformer_Fourier", outputRoot="outputs/Transformer_Fourier_output_32", epochs=300)
+    run(train_dataloader, val_dataloader, test_dataloader, past_actions_count=3, model="Transformer_Fourier", outputRoot="outputs/Transformer_Fourier_32", epochs=300)
 
 
 if __name__ == "__main__":
