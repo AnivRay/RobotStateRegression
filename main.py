@@ -21,10 +21,11 @@ def loadData(past_actions_count=3):
 
     X = []
     Y = []
-    for i in range(len(savedActions1) - past_actions_count):
+    offset = 20
+    for i in range(len(savedActions1) - past_actions_count - offset):
         combinedObsAct1 = np.concatenate([savedObservations1[i:i + past_actions_count], savedActions1[i:i + past_actions_count],], axis=1)
         X.append(combinedObsAct1.flatten())
-        Y.append(savedObservations1[i + past_actions_count])
+        Y.append(savedObservations1[i + past_actions_count + offset])
 
     X = np.array(X)
     Y = np.array(Y)
@@ -53,7 +54,7 @@ def getModel(modelTag, past_actions_count):
 
     input_size = past_actions_count * (27 + 8)
     output_size = 27
-    numFreqs = 32
+    numFreqs = 8
 
     if modelTag == "MLP":
         return MLP(input_size, output_size).to(device)
@@ -142,14 +143,14 @@ def run(trainLoader, valLoader, testLoader, past_actions_count, model="MLP", lr=
 
 def main():
     batch_size = 256
-    past_actions_count = 3 # Number of previous actions for prediction
+    past_actions_count = 1 # Number of previous actions for prediction
     train_dataset, val_dataset, test_dataset = loadData(past_actions_count)
 
     train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
     val_dataloader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
     test_dataloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
 
-    run(train_dataloader, val_dataloader, test_dataloader, past_actions_count=3, model="Transformer_Fourier", outputRoot="outputs/Transformer_Fourier_32", epochs=300)
+    run(train_dataloader, val_dataloader, test_dataloader, past_actions_count=past_actions_count, model="Transformer_Fourier", outputRoot="outputs_20/Transformer_Fourier_4", epochs=300)
 
 
 if __name__ == "__main__":
