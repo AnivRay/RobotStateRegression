@@ -73,19 +73,20 @@ class FourierFeatures(nn.Module):
         self.inputSize = inputSize
         
         # Create a tensor for multiplication factors [1, 2, 3]
-        multiplication_factors = torch.arange(self.num_freq).to(device) / self.num_freq
+        multiplication_factors = torch.rand(self.num_freq).to(device) # torch.arange(self.num_freq).to(device) / self.num_freq
         # Repeat the multiplication factors tensor to match the length of the repeated elements tensor
         self.repeated_factors = multiplication_factors.repeat(inputSize)
-        # self.sigma = sigma
+        # self.sigma = 1 # sigma
 
-        # self.freq = nn.Linear(in_features=3, out_features=self.num_freq)
+        # self.freq = nn.Linear(in_features=self.inputSize, out_features=self.num_freq)
         # print('non-learnable frequencies: {}'.format(self.sigma))
         # with torch.no_grad(): # fix these weights
-        #     self.freq.weight = nn.Parameter(torch.normal(mean=0, std=self.sigma, size=(self.num_freq, 3)), requires_grad=False)
+        #     self.freq.weight = nn.Parameter(torch.normal(mean=0, std=self.sigma, size=(self.num_freq, self.inputSize)), requires_grad=False)
         #     self.freq.bias = nn.Parameter(torch.zeros(self.num_freq), requires_grad=False)
 
     # Expects input x ~ (batch_size, sequence_len, state_vector_len)
     def forward(self, x):
+        # print(x.size(), self.freq.weight.size())
         # x = self.freq(x)
 
         x = torch.repeat_interleave(x, self.num_freq, dim=-1)

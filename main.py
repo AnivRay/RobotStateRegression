@@ -5,19 +5,18 @@ import torch.optim as optim
 from torch.utils.data import DataLoader
 from models import *
 from datasets import *
+from sklearn.model_selection import train_test_split
 
 device = "cuda:0" if torch.cuda.is_available() else "cpu"
 
 def loadData(past_actions_count=3):
     with open("RobotData/actions_3.npy", 'rb') as f:
         savedActions = np.load(f, allow_pickle=True)
-        savedActions1 = np.array(savedActions[0][:45000])
-        savedActions2 = np.array(savedActions[0][45000:])
+        savedActions1 = np.array(savedActions[0])
 
     with open("RobotData/observations_3.npy", 'rb') as f:
-        savedActions = np.load(f, allow_pickle=True)
-        savedObservations1 = np.array(savedActions[0][:45000])
-        savedObservations2 = np.array(savedActions[0][45000:])
+        savedObservations = np.load(f, allow_pickle=True)
+        savedObservations1 = np.array(savedObservations[0])
 
     X = []
     Y = []
@@ -30,19 +29,22 @@ def loadData(past_actions_count=3):
     X = np.array(X)
     Y = np.array(Y)
 
-    trainValSplit = int(0.8 * len(X))
-    trainX, valX = X[:trainValSplit], X[trainValSplit:]
-    trainY, valY = Y[:trainValSplit], Y[trainValSplit:]
+    trainX, tempX, trainY, tempY = train_test_split(X, Y, test_size=0.2)
+    testX, valX, testY, valY = train_test_split(tempX, tempY, test_size=0.5)
 
-    testX = []
-    testY = []
-    for i in range(len(savedActions2) - past_actions_count):
-        combinedObsAct2 = np.concatenate([savedObservations2[i:i + past_actions_count], savedActions2[i:i + past_actions_count],], axis=1)
-        testX.append(combinedObsAct2.flatten())
-        testY.append(savedObservations2[i + past_actions_count])
+    # trainValSplit = int(0.8 * len(X))
+    # trainX, valX = X[:trainValSplit], X[trainValSplit:]
+    # trainY, valY = Y[:trainValSplit], Y[trainValSplit:]
 
-    testX = np.array(testX)
-    testY = np.array(testY)
+    # testX = []
+    # testY = []
+    # for i in range(len(savedActions2) - past_actions_count):
+    #     combinedObsAct2 = np.concatenate([savedObservations2[i:i + past_actions_count], savedActions2[i:i + past_actions_count],], axis=1)
+    #     testX.append(combinedObsAct2.flatten())
+    #     testY.append(savedObservations2[i + past_actions_count])
+
+    # testX = np.array(testX)
+    # testY = np.array(testY)
     
     train_dataset = ActionSequenceDataset(trainX, trainY)
     val_dataset = ActionSequenceDataset(valX, valY)
@@ -79,7 +81,7 @@ def run(trainLoader, valLoader, testLoader, past_actions_count, model="MLP", lr=
         os.mkdir(outputRoot)
 
     model = getModel(model, past_actions_count)
-    criterion = nn.MSELoss()
+    criterion = nn.MSELoss(reduction='mean')
     optimizer = optim.Adam(model.parameters(), lr=lr)
 
     minValLoss = None
@@ -143,14 +145,14 @@ def run(trainLoader, valLoader, testLoader, past_actions_count, model="MLP", lr=
 
 def main():
     batch_size = 256
-    past_actions_count = 1 # Number of previous actions for prediction
+    past_actions_count = 4 # Number of previous actions for prediction
     train_dataset, val_dataset, test_dataset = loadData(past_actions_count)
 
     train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
     val_dataloader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
     test_dataloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
 
-    run(train_dataloader, val_dataloader, test_dataloader, past_actions_count=past_actions_count, model="Transformer_Fourier", outputRoot="outputs_20/Transformer_Fourier_4", epochs=300)
+    run(train_dataloader, val_dataloader, test_dataloader, past_actions_count=past_actions_count, model="Transformer_Fourier", outputRoot="outputs_final/Transformer_Fourier", epochs=300)
 
 
 if __name__ == "__main__":
